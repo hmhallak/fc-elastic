@@ -1,0 +1,57 @@
+version: '3'   
+
+services:
+    db:
+      image: postgres
+      container_name: postgres-fc
+      tty: true
+      environment:
+        - POSTGRES_DB=commerce_admin
+        - POSTGRES_USER=postgres
+        - POSTGRES_PASSWORD=root
+      volumes:
+        - .docker/pgdata:/var/lib/postgresql/data
+      ports:
+        - "45432:5432"
+      networks: 
+        - observability
+
+    pgadmin:
+      image: dpage/pgadmin4
+      container_name: pgadmin-fc
+      tty: true
+      environment:
+        - PGADMIN_DEFAULT_EMAIL=admin@fullcycle.com.br
+        - PGADMIN_DEFAULT_PASSWORD=123456
+      ports:
+        - "9009:80"
+      networks: 
+        - observability
+    
+    app:
+      build: .
+      container_name: app-python
+      command: python manage.py runserver 0.0.0.0:8000
+      volumes:
+        - .:/code
+      ports:
+        - "8000:8000"
+      depends_on:
+        - db
+      networks: 
+        - observability
+    
+    nginx:
+      build: ../nginx
+      container_name: nginx-fc
+      ports:
+        - "8281:80"
+      networks: 
+        - observability
+
+networks:
+  observability:
+    external: true     
+
+    # J1LTnvzdWiffA1Zlzl8M5ov2
+    # elastic
